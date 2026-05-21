@@ -1,0 +1,356 @@
+-- MySQL Workbench Forward Engineering
+
+SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0;
+SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0;
+SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION';
+
+-- -----------------------------------------------------
+-- Schema mydb
+-- -----------------------------------------------------
+-- -----------------------------------------------------
+-- Schema railway
+-- -----------------------------------------------------
+
+-- -----------------------------------------------------
+-- Schema railway
+-- -----------------------------------------------------
+CREATE SCHEMA IF NOT EXISTS `railway` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci ;
+USE `railway` ;
+
+-- -----------------------------------------------------
+-- Table `railway`.`categories`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `railway`.`categories` (
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `name` VARCHAR(100) NOT NULL,
+  `description` TEXT NULL DEFAULT NULL,
+  `created_at` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`))
+ENGINE = InnoDB
+AUTO_INCREMENT = 4
+DEFAULT CHARACTER SET = utf8mb4
+COLLATE = utf8mb4_0900_ai_ci;
+
+
+-- -----------------------------------------------------
+-- Table `railway`.`departments`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `railway`.`departments` (
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `name` VARCHAR(100) NOT NULL,
+  `encarged` VARCHAR(100) NULL DEFAULT NULL,
+  `created_at` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE INDEX `name` (`name` ASC) VISIBLE)
+ENGINE = InnoDB
+AUTO_INCREMENT = 3
+DEFAULT CHARACTER SET = utf8mb4
+COLLATE = utf8mb4_0900_ai_ci;
+
+
+-- -----------------------------------------------------
+-- Table `railway`.`products`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `railway`.`products` (
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `name` VARCHAR(100) NOT NULL,
+  `category_id` INT NOT NULL,
+  `stock_quantity` INT NOT NULL DEFAULT '0',
+  `registered_at` DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
+  `created_at` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  INDEX `category_id` (`category_id` ASC) VISIBLE,
+  CONSTRAINT `products_ibfk_1`
+    FOREIGN KEY (`category_id`)
+    REFERENCES `railway`.`categories` (`id`))
+ENGINE = InnoDB
+AUTO_INCREMENT = 4
+DEFAULT CHARACTER SET = utf8mb4
+COLLATE = utf8mb4_0900_ai_ci;
+
+
+-- -----------------------------------------------------
+-- Table `railway`.`movements`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `railway`.`movements` (
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `product_id` INT NOT NULL,
+  `department_id` INT NOT NULL,
+  `quantity` INT NOT NULL,
+  `movement_type` ENUM('in', 'out') NOT NULL,
+  `description` TEXT NULL DEFAULT NULL,
+  `movement_date` DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
+  `created_at` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  INDEX `product_id` (`product_id` ASC) VISIBLE,
+  INDEX `department_id` (`department_id` ASC) VISIBLE,
+  CONSTRAINT `movements_ibfk_1`
+    FOREIGN KEY (`product_id`)
+    REFERENCES `railway`.`products` (`id`),
+  CONSTRAINT `movements_ibfk_2`
+    FOREIGN KEY (`department_id`)
+    REFERENCES `railway`.`departments` (`id`))
+ENGINE = InnoDB
+AUTO_INCREMENT = 5
+DEFAULT CHARACTER SET = utf8mb4
+COLLATE = utf8mb4_0900_ai_ci;
+
+
+-- -----------------------------------------------------
+-- Table `railway`.`roles`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `railway`.`roles` (
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `name` VARCHAR(50) NOT NULL,
+  `created_at` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE INDEX `name` (`name` ASC) VISIBLE)
+ENGINE = InnoDB
+AUTO_INCREMENT = 2
+DEFAULT CHARACTER SET = utf8mb4
+COLLATE = utf8mb4_0900_ai_ci;
+
+
+-- -----------------------------------------------------
+-- Table `railway`.`users`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `railway`.`users` (
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `username` VARCHAR(50) NOT NULL,
+  `password` VARCHAR(255) NOT NULL,
+  `role_id` INT NOT NULL,
+  `created_at` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE INDEX `username` (`username` ASC) VISIBLE,
+  INDEX `role_id` (`role_id` ASC) VISIBLE,
+  CONSTRAINT `users_ibfk_1`
+    FOREIGN KEY (`role_id`)
+    REFERENCES `railway`.`roles` (`id`))
+ENGINE = InnoDB
+AUTO_INCREMENT = 4
+DEFAULT CHARACTER SET = utf8mb4
+COLLATE = utf8mb4_0900_ai_ci;
+
+
+-- -----------------------------------------------------
+-- Table `railway`.`tickets`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `railway`.`tickets` (
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `description` TEXT NOT NULL,
+  `product_id` INT NULL DEFAULT NULL,
+  `location` VARCHAR(150) NULL DEFAULT NULL,
+  `status` ENUM('pending', 'in_progress', 'resolved') NULL DEFAULT 'pending',
+  `requester_id` INT NOT NULL,
+  `technician_id` INT NULL DEFAULT NULL,
+  `created_at` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  INDEX `product_id` (`product_id` ASC) VISIBLE,
+  INDEX `requester_id` (`requester_id` ASC) VISIBLE,
+  INDEX `technician_id` (`technician_id` ASC) VISIBLE,
+  CONSTRAINT `tickets_ibfk_1`
+    FOREIGN KEY (`product_id`)
+    REFERENCES `railway`.`products` (`id`),
+  CONSTRAINT `tickets_ibfk_2`
+    FOREIGN KEY (`requester_id`)
+    REFERENCES `railway`.`users` (`id`),
+  CONSTRAINT `tickets_ibfk_3`
+    FOREIGN KEY (`technician_id`)
+    REFERENCES `railway`.`users` (`id`))
+ENGINE = InnoDB
+AUTO_INCREMENT = 2
+DEFAULT CHARACTER SET = utf8mb4
+COLLATE = utf8mb4_0900_ai_ci;
+
+USE `railway`;
+
+DELIMITER $$
+USE `railway`$$
+CREATE
+DEFINER=`root`@`localhost`
+TRIGGER `railway`.`after_delete_movement`
+AFTER DELETE ON `railway`.`movements`
+FOR EACH ROW
+BEGIN
+
+    -- Si era una entrada, quitar stock
+    IF OLD.movement_type = 'in' THEN
+
+        UPDATE products
+        SET stock_quantity = stock_quantity - OLD.quantity
+        WHERE id = OLD.product_id;
+
+    END IF;
+
+    -- Si era una salida, devolver stock
+    IF OLD.movement_type = 'out' THEN
+
+        UPDATE products
+        SET stock_quantity = stock_quantity + OLD.quantity
+        WHERE id = OLD.product_id;
+
+    END IF;
+
+END$$
+
+USE `railway`$$
+CREATE
+DEFINER=`root`@`localhost`
+TRIGGER `railway`.`after_insert_movement`
+AFTER INSERT ON `railway`.`movements`
+FOR EACH ROW
+BEGIN
+
+    -- Entrada
+    IF NEW.movement_type = 'in' THEN
+
+        UPDATE products
+        SET stock_quantity = stock_quantity + NEW.quantity
+        WHERE id = NEW.product_id;
+
+    END IF;
+
+    -- Salida
+    IF NEW.movement_type = 'out' THEN
+
+        UPDATE products
+        SET stock_quantity = stock_quantity - NEW.quantity
+        WHERE id = NEW.product_id;
+
+    END IF;
+
+END$$
+
+USE `railway`$$
+CREATE
+DEFINER=`root`@`localhost`
+TRIGGER `railway`.`after_update_movement`
+AFTER UPDATE ON `railway`.`movements`
+FOR EACH ROW
+BEGIN
+
+    -- DEVOLVER movimiento anterior
+
+    IF OLD.movement_type = 'in' THEN
+
+        UPDATE products
+        SET stock_quantity = stock_quantity - OLD.quantity
+        WHERE id = OLD.product_id;
+
+    END IF;
+
+    IF OLD.movement_type = 'out' THEN
+
+        UPDATE products
+        SET stock_quantity = stock_quantity + OLD.quantity
+        WHERE id = OLD.product_id;
+
+    END IF;
+
+
+    -- APLICAR nuevo movimiento
+
+    IF NEW.movement_type = 'in' THEN
+
+        UPDATE products
+        SET stock_quantity = stock_quantity + NEW.quantity
+        WHERE id = NEW.product_id;
+
+    END IF;
+
+    IF NEW.movement_type = 'out' THEN
+
+        UPDATE products
+        SET stock_quantity = stock_quantity - NEW.quantity
+        WHERE id = NEW.product_id;
+
+    END IF;
+
+END$$
+
+USE `railway`$$
+CREATE
+DEFINER=`root`@`localhost`
+TRIGGER `railway`.`before_insert_movement`
+BEFORE INSERT ON `railway`.`movements`
+FOR EACH ROW
+BEGIN
+    DECLARE current_stock INT;
+
+    -- Obtener stock actual del producto
+    SELECT stock_quantity
+    INTO current_stock
+    FROM products
+    WHERE id = NEW.product_id;
+
+    -- Validar si es salida
+    IF NEW.movement_type = 'out' THEN
+
+        -- Verificar si hay suficiente stock
+        IF current_stock < NEW.quantity THEN
+            SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'Stock insuficiente para realizar la salida';
+        END IF;
+
+    END IF;
+END$$
+
+USE `railway`$$
+CREATE
+DEFINER=`root`@`localhost`
+TRIGGER `railway`.`before_update_movement`
+BEFORE UPDATE ON `railway`.`movements`
+FOR EACH ROW
+BEGIN
+    DECLARE current_stock INT;
+
+    -- Validar cantidad
+    IF NEW.quantity <= 0 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'La cantidad debe ser mayor a 0';
+    END IF;
+
+    -- Obtener stock actual
+    SELECT stock_quantity
+    INTO current_stock
+    FROM products
+    WHERE id = NEW.product_id;
+
+    /*
+      Primero se devuelve el stock anterior
+      para simular cómo quedaría realmente
+    */
+
+    IF OLD.movement_type = 'out' THEN
+        SET current_stock = current_stock + OLD.quantity;
+    END IF;
+
+    IF OLD.movement_type = 'in' THEN
+        SET current_stock = current_stock - OLD.quantity;
+    END IF;
+
+    -- Validar nueva salida
+    IF NEW.movement_type = 'out' THEN
+
+        IF current_stock < NEW.quantity THEN
+            SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'Stock insuficiente para actualizar movimiento';
+        END IF;
+
+    END IF;
+
+END$$
+
+
+DELIMITER ;
+
+SET SQL_MODE=@OLD_SQL_MODE;
+SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;
+SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS;
