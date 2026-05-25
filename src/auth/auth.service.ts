@@ -20,6 +20,7 @@ export class AuthService {
         username, 
         password: await bcrypt.hash(password, 10), // Hash de la contraseña
         role_id
+        
     });
        return user;
     }
@@ -33,14 +34,20 @@ export class AuthService {
         if (!isMatch) {
             throw new UnauthorizedException('Credenciales inválidas');
         }
-        const payload = { username: user.username, sub: user.id, role_id: user.role_id };
+        const payload = {
+            username: user.username,
+            sub: user.id,
+            role_id: user.role_id,
+            role_name: user.role?.name
+        };
         const token = await this.jwtService.signAsync(payload);
         return{
             access_token: token,
             user: {
                 id: user.id,
                 username: user.username,
-                role_id: user.role_id
+                role_id: user.role_id,
+                role_name: user.role?.name
             }
         }
         

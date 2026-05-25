@@ -26,10 +26,11 @@ export class UserService {
   }
   // Método para obtener un usuario por su nombre de usuario
   async findByUsername(username: string): Promise<User | null> {
-    const user = await this.userRepository.findOneBy({ username });
-    if (!user) {
-      return null;
-    }
+    const user = await this.userRepository.findOne({ 
+      where: { username },
+      relations: ['role']
+     });
+     
     return user;
   }
 
